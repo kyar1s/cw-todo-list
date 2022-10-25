@@ -1,10 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
+import Layout from "./components/Layout/Layout";
+import AppProvider from "./providers/AppProvider";
+import { configKeplr } from "./utils/configKeplr";
 
 const App: React.FC = () => {
   return (
-    <div className="flex flex-col h-[100vh] bg-slate-800">
-      <div className="flex items-center justify-center max-w-[1000px]"></div>
-    </div>
+    <AppProvider>
+      <Layout>
+        <div className="text-white">Welcome to your TODO-LIST</div>
+      </Layout>
+    </AppProvider>
   );
 };
 
