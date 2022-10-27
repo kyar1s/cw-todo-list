@@ -1,6 +1,6 @@
 export enum TodoStatus {
-  "pending",
-  "in_progress",
-  "done",
-  "cancelled",
+  pending = "pending",
+  in_progress = "in_progress",
+  done = "done",
+  cancelled = "cancelled",
 }
