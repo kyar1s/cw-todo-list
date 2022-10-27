@@ -24,6 +24,7 @@ interface AppContextValue {
   contractAddr: string | undefined;
   instantiateTodoContract: () => void;
   queryTodos: () => void;
+  deleteTodo: (id: number) => void;
 }
 
 export const AppContext = React.createContext<AppContextValue | null>(null);
@@ -84,6 +85,16 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
     );
   };
 
+  const deleteTodo = async (id: number) => {
+    if (!contractAddr) return;
+    await client.execute(
+      clientAddr,
+      contractAddr,
+      { delete_todo: { id } },
+      "auto"
+    );
+  };
+
   useEffect(() => {
     if (!allowPermission) return;
     connectWallet();
@@ -105,6 +116,7 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
         contractAddr,
         instantiateTodoContract,
         queryTodos,
+        deleteTodo,
       }}
     >
       {children}
