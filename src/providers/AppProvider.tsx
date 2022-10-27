@@ -85,8 +85,14 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
   };
 
   useEffect(() => {
-    allowPermission && connectWallet();
+    if (!allowPermission) return;
+    connectWallet();
   }, []);
+
+  useEffect(() => {
+    if (!contractAddr || !client) return;
+    queryTodos();
+  }, [client]);
 
   return (
     <AppContext.Provider
