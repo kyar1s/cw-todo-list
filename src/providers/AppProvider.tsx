@@ -12,6 +12,7 @@ import React, {
 } from "react";
 import { useLocalStorage } from "react-use";
 import { ITodo } from "../interfaces/ITodo";
+import { TodoStatus } from "../interfaces/TodoStatus";
 import { createSignClient } from "../services/cosmwasm";
 import { malagaConfig } from "../utils/malagaConfig";
 
@@ -25,6 +26,7 @@ interface AppContextValue {
   instantiateTodoContract: () => void;
   queryTodos: () => void;
   deleteTodo: (id: number) => void;
+  updateTodoDescription: (id: number, description: string) => void;
 }
 
 export const AppContext = React.createContext<AppContextValue | null>(null);
@@ -75,24 +77,21 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
     setTodos(todos);
   };
 
-  const addTodo = async (description: string) => {
+  const execute = async (msg: any) => {
     if (!contractAddr) return;
-    await client.execute(
-      clientAddr,
-      contractAddr,
-      { add_todo: { description } },
-      "auto"
-    );
+    await client.execute(clientAddr, contractAddr, msg, "auto");
+  };
+
+  const addTodo = async (description: string) => {
+    await execute({ add_todo: { description } });
   };
 
   const deleteTodo = async (id: number) => {
-    if (!contractAddr) return;
-    await client.execute(
-      clientAddr,
-      contractAddr,
-      { delete_todo: { id } },
-      "auto"
-    );
+    await execute({ delete_todo: { id } });
+  };
+
+  const updateTodoDescription = async (id: number, description: string) => {
+    await execute({ update_todo: { id, description } });
   };
 
   useEffect(() => {
@@ -117,6 +116,7 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
         instantiateTodoContract,
         queryTodos,
         deleteTodo,
+        updateTodoDescription,
       }}
     >
       {children}

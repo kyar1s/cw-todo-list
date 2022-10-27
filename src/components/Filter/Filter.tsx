@@ -13,8 +13,8 @@ const Filter: React.FC<Props> = ({ selectedFilter, setFilter }) => {
     <div className="flex items-center justify-center gap-6 py-4 px-8 text-sm md:text-lg lg:text-2xl font-bold flex-wrap">
       <button
         className={clsx(
-          "text-transparent bg-clip-text bg-gradient-to-tr from-slate-100 to-slate-200/70",
-          selectedFilter === "" && "border-b-2 border-slate-100"
+          "text-transparent bg-clip-text bg-gradient-to-tr from-slate-100 to-slate-200/70 border-b-2",
+          selectedFilter === "" ? "border-slate-100" : `border-transparent`
         )}
         onClick={() => setFilter("")}
       >
