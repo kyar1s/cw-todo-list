@@ -1,8 +1,11 @@
-import React, { FormEvent, useCallback, useState } from "react";
+import React, { FormEvent, useState } from "react";
 import { useAppContext } from "../../providers/AppProvider";
 import { GradientButton } from "../Buttons";
 import Input from "../Input";
-import { ReloadGradientIcon } from "../Icons";
+import { GoPlus } from "react-icons/go";
+import { EditIcon, RemoveIcon } from "../Icons";
+import clsx from "clsx";
+import { TodoStatus } from "../../interfaces/TodoStatus";
 
 const TodosContainer: React.FC = () => {
   const { contractAddr, instantiateTodoContract, todos, queryTodos, addTodo } =
@@ -28,29 +31,47 @@ const TodosContainer: React.FC = () => {
                 value={todoValue}
                 onChange={({ target }) => setTodoValue(target.value)}
                 autoComplete="off"
+                placeholder="Add a new 'todo' and press 'Enter'"
               />
-              <GradientButton>Add</GradientButton>
+              <GradientButton className="h-[32px]">
+                <GoPlus />
+              </GradientButton>
             </form>
-            <button
-              className="active:rotate-180 transition duration-300 ease-in-out"
-              onClick={queryTodos}
-            >
-              <ReloadGradientIcon />
-            </button>
           </div>
 
           <ul className="flex flex-col w-full gap-2 mt-4">
             {todos.length ? (
               <>
                 {todos.map(({ id, description, status }) => (
-                  <li className="p-2 w-full text-slate-100 flex justify-between items-center">
+                  <li
+                    className="p-2 w-full text-slate-100 flex justify-between items-center"
+                    key={`todo-${id}`}
+                  >
                     <p>
                       <span className="font-extrabold text-transparent text-2xl bg-clip-text bg-gradient-to-r from-amber-400 via-pink-400 to-indigo-500 mr-2">
                         {id}
                       </span>
-                      {description}
+                      <input
+                        value={description}
+                        className="bg-transparent cursor-text outline-none"
+                      />
                     </p>
-                    <p>options</p>
+                    <div className="flex gap-2">
+                      <button
+                        className={clsx(
+                          "py-1 px-2 rounded-md text-sm",
+                          status === TodoStatus.pending && "bg-indigo-400",
+                          status === TodoStatus.in_progress && "bg-amber-400",
+                          status === TodoStatus.cancelled && "bg-pink-400",
+                          status === TodoStatus.done && "bg-teal-400"
+                        )}
+                      >
+                        {status}
+                      </button>
+                      <button>
+                        <RemoveIcon />
+                      </button>
+                    </div>
                   </li>
                 ))}
               </>
