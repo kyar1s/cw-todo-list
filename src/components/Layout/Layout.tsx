@@ -1,5 +1,6 @@
 import React, { PropsWithChildren } from "react";
 import { useAppContext } from "../../providers/AppProvider";
+import { IntlAddress } from "../../utils/intl";
 import { GradientButton } from "../Buttons";
 
 const Layout: React.FC<PropsWithChildren<{}>> = ({ children }) => {
@@ -12,7 +13,7 @@ const Layout: React.FC<PropsWithChildren<{}>> = ({ children }) => {
             <p className="font-extrabold text-transparent text-3xl bg-clip-text bg-gradient-to-r from-amber-400 via-pink-400 to-indigo-500">
               TODO's
             </p>
-            <p className="text-white text-md">{clientAddr}</p>
+            <p className="text-white text-md">{IntlAddress(clientAddr)}</p>
           </>
         )}
       </nav>
