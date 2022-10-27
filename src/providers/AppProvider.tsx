@@ -1,3 +1,8 @@
+import {
+  CosmWasmClient,
+  SigningCosmWasmClient,
+} from "@cosmjs/cosmwasm-stargate";
+import { GasPrice } from "@cosmjs/stargate";
 import React, {
   Dispatch,
   PropsWithChildren,
@@ -5,17 +10,45 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { useLocalStorage } from "react-use";
+import { ITodo } from "../interfaces/ITodo";
+import { createSignClient } from "../services/cosmwasm";
 import { malagaConfig } from "../utils/malagaConfig";
 
 interface AppContextValue {
   clientAddr: string | null;
   setClientAddr: Dispatch<SetStateAction<string | null>>;
   connectWallet: () => void;
+  todos: ITodo[];
+  addTodo: (description: string) => void;
+  contractAddr: string | undefined;
+  instantiateTodoContract: () => void;
+  queryTodos: () => void;
 }
+
 export const AppContext = React.createContext<AppContextValue | null>(null);
 
 const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
   const [clientAddr, setClientAddr] = useState<string | null>(null);
+  const [client, setClient] = useState<any>(null);
+  const [contractAddr, setContractAddr] =
+    useLocalStorage<string>("contractAddr");
+  const [allowPermission, setAllowPermission] =
+    useLocalStorage<boolean>("allowPermission");
+  const [todos, setTodos] = useState<ITodo[]>([]);
+
+  const instantiateTodoContract = async () => {
+    if (!clientAddr) return;
+    const inst = await client.instantiate(
+      clientAddr,
+      1804,
+      { owner: clientAddr },
+      "Todo-List",
+      "auto"
+    );
+    const { contractAddress } = inst;
+    setContractAddr(contractAddress);
+  };
 
   const connectWallet = async () => {
     try {
@@ -26,16 +59,48 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
     }
     const signer = window.keplr?.getOfflineSigner("malaga-420");
     if (!signer) return;
-    const [{ address }] = await signer?.getAccounts();
+    const client = await createSignClient(signer);
+    const [{ address }] = await signer.getAccounts();
+    setClient(client);
     setClientAddr(address);
+    setAllowPermission(true);
+  };
+
+  const queryTodos = async () => {
+    if (!contractAddr) return;
+    const { todos } = await client.queryContractSmart(contractAddr, {
+      get_todo_list: { addr: clientAddr },
+    });
+    setTodos(todos);
+  };
+
+  const addTodo = async (description: string) => {
+    if (!contractAddr) return;
+    await client.execute(
+      clientAddr,
+      contractAddr,
+      { add_todo: { description } },
+      "auto"
+    );
   };
 
   useEffect(() => {
-    connectWallet();
+    allowPermission && connectWallet();
   }, []);
 
   return (
-    <AppContext.Provider value={{ clientAddr, setClientAddr, connectWallet }}>
+    <AppContext.Provider
+      value={{
+        clientAddr,
+        setClientAddr,
+        connectWallet,
+        todos,
+        addTodo,
+        contractAddr,
+        instantiateTodoContract,
+        queryTodos,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );
