@@ -14,7 +14,7 @@ const TodoItem: React.FC<Props> = ({ todo }) => {
 
   const handlerInputBlur = () => {
     try {
-      if (value !== description) updateTodoDescription(id, value);
+      if (value.trim() !== description.trim()) updateTodoDescription(id, value);
     } catch (e) {
       setValue(description);
     }
@@ -33,7 +33,7 @@ const TodoItem: React.FC<Props> = ({ todo }) => {
           value={value}
           onChange={({ target }) => setValue(target.value)}
           onBlur={handlerInputBlur}
-          className="bg-transparent cursor-text outline-none flex-1 focus:bg-slate-700/70 rounded-[4px] px-2"
+          className="bg-transparent cursor-text outline-none flex-1 focus:bg-slate-700/70 rounded-[4px] px-2 hover:bg-slate-700/40 transition-all"
         />
       </div>
       <div className="flex gap-2">
