@@ -47,13 +47,24 @@ const TodosContainer: React.FC = () => {
               </GradientButton>
             </form>
           </div>
-          {filteredTodos.length ? (
+          {todos.length ? (
             <>
               <Filter selectedFilter={filter} setFilter={setFilter} />
               <ul className="flex flex-col w-full gap-2 mt-4">
-                {filteredTodos.map((todo) => {
-                  return <TodoItem todo={todo} key={`todo-${todo.id}`} />;
-                })}
+                {filteredTodos.length ? (
+                  <>
+                    {filteredTodos.map((todo) => {
+                      return <TodoItem todo={todo} key={`todo-${todo.id}`} />;
+                    })}
+                  </>
+                ) : (
+                  <p className="text-slate-100 text-center p-4 mt-8 text-xl">
+                    You don't have any todo in{" "}
+                    <span className="capitalize">
+                      {filter.replace("_", " ")}
+                    </span>
+                  </p>
+                )}
               </ul>
             </>
           ) : (
