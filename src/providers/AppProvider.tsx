@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import toast from "react-hot-toast";
 import { useLocalStorage } from "react-use";
 import { ITodo } from "../interfaces/ITodo";
 import { TodoStatus } from "../interfaces/TodoStatus";
@@ -16,7 +17,6 @@ interface AppContextValue {
   setClientAddr: Dispatch<SetStateAction<string | null>>;
   connectWallet: () => void;
   todos: ITodo[];
-  isLoading: boolean;
   addTodo: (description: string) => void;
   contractAddr: string | undefined;
   instantiateTodoContract: () => void;
@@ -30,7 +30,6 @@ export const AppContext = React.createContext<AppContextValue | null>(null);
 
 const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
   const [clientAddr, setClientAddr] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [client, setClient] = useState<any>(null);
   const [contractAddr, setContractAddr] =
     useLocalStorage<string>("contractAddr");
@@ -69,12 +68,10 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
 
   const queryTodos = async () => {
     if (!contractAddr) return;
-    setIsLoading(true);
     const { todos } = await client.queryContractSmart(contractAddr, {
       get_todo_list: { addr: clientAddr, limit: 30 },
     });
     setTodos(todos);
-    setIsLoading(false);
   };
 
   const execute = async (msg: any) => {
@@ -92,10 +89,20 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
     //     sub.unsubscribe();
     //   },
     // });
-    setIsLoading(true);
-    await client.execute(clientAddr, contractAddr, msg, "auto");
+    await toast.promise(
+      client.execute(clientAddr, contractAddr, msg, "auto"),
+      {
+        loading: "Loading...",
+        success: "Successfully executed!",
+        error: "Error when executed",
+      },
+      {
+        success: {
+          icon: "🔥",
+        },
+      }
+    );
     await queryTodos();
-    setIsLoading(false);
   };
 
   const addTodo = async (description: string) => {
@@ -131,7 +138,6 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
         setClientAddr,
         connectWallet,
         todos,
-        isLoading,
         addTodo,
         contractAddr,
         instantiateTodoContract,

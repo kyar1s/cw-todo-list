@@ -8,14 +8,8 @@ import Filter from "../Filter";
 import TodoItem from "../TodoItem";
 
 const TodosContainer: React.FC = () => {
-  const {
-    contractAddr,
-    instantiateTodoContract,
-    todos,
-    deleteTodo,
-    addTodo,
-    isLoading,
-  } = useAppContext();
+  const { contractAddr, instantiateTodoContract, todos, addTodo } =
+    useAppContext();
   const [todoValue, setTodoValue] = useState<string>("");
   const [filter, setFilter] = useState<TodoStatus | "">("");
 
