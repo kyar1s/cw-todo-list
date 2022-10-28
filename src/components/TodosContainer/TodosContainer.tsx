@@ -16,6 +16,7 @@ const TodosContainer: React.FC = () => {
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await addTodo(todoValue);
+    setTodoValue("");
   };
 
   return (

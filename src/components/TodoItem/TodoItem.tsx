@@ -1,10 +1,7 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { ITodo } from "../../interfaces/ITodo";
-import { statusColor } from "../../utils/statusColor";
-import clsx from "clsx";
-import { RemoveIcon } from "../Icons";
 import { useAppContext } from "../../providers/AppProvider";
-import { useClickAway } from "react-use";
+import { TodoItemOptions } from "../Dropdowns";
 
 interface Props {
   todo: ITodo;
@@ -17,7 +14,7 @@ const TodoItem: React.FC<Props> = ({ todo }) => {
 
   const handlerInputBlur = () => {
     try {
-      updateTodoDescription(id, value);
+      if (value !== description) updateTodoDescription(id, value);
     } catch (e) {
       setValue(description);
     }
@@ -40,16 +37,7 @@ const TodoItem: React.FC<Props> = ({ todo }) => {
         />
       </div>
       <div className="flex gap-2">
-        <button
-          className={clsx(
-            `px-1 rounded-[4px] text-sm bg-${statusColor[status]}-400`
-          )}
-        >
-          {status}
-        </button>
-        <button onClick={() => deleteTodo(id)}>
-          <RemoveIcon />
-        </button>
+        <TodoItemOptions id={id} selected={status} />
       </div>
     </li>
   );
