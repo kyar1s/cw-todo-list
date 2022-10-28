@@ -19,11 +19,11 @@ const Layout: React.FC<PropsWithChildren<{}>> = ({ children }) => {
         )}
       </nav>
       {clientAddr ? (
-        <div className="flex items-center justify-center max-w-[1000px] w-full mx-auto p-4 h-full ">
+        <div className="flex max-w-[1000px] w-full mx-auto p-4 h-full flex-1">
           {children}
         </div>
       ) : (
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center flex-1">
           <GradientButton onClick={connectWallet}>Log in!</GradientButton>
         </div>
       )}
