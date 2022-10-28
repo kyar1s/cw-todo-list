@@ -1,4 +1,4 @@
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useMemo, useState } from "react";
 import { useAppContext } from "../../providers/AppProvider";
 import { GradientButton } from "../Buttons";
 import Input from "../Input";
@@ -8,16 +8,29 @@ import Filter from "../Filter";
 import TodoItem from "../TodoItem";
 
 const TodosContainer: React.FC = () => {
-  const { contractAddr, instantiateTodoContract, todos, deleteTodo, addTodo } =
-    useAppContext();
+  const {
+    contractAddr,
+    instantiateTodoContract,
+    todos,
+    deleteTodo,
+    addTodo,
+    isLoading,
+  } = useAppContext();
   const [todoValue, setTodoValue] = useState<string>("");
   const [filter, setFilter] = useState<TodoStatus | "">("");
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await addTodo(todoValue);
-    setTodoValue("");
+    if (todoValue) {
+      setTodoValue("");
+      await addTodo(todoValue.trim());
+    }
   };
+
+  const filteredTodos = useMemo(() => {
+    if (!filter) return todos;
+    return todos.filter((todo) => todo.status === filter);
+  }, [filter, todos]);
 
   return (
     <div className="h-full w-full flex justify-center">
@@ -40,11 +53,11 @@ const TodosContainer: React.FC = () => {
               </GradientButton>
             </form>
           </div>
-          {todos.length ? (
+          {filteredTodos.length ? (
             <>
               <Filter selectedFilter={filter} setFilter={setFilter} />
               <ul className="flex flex-col w-full gap-2 mt-4">
-                {todos.map((todo) => {
+                {filteredTodos.map((todo) => {
                   return <TodoItem todo={todo} key={`todo-${todo.id}`} />;
                 })}
               </ul>

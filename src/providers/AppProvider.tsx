@@ -16,6 +16,7 @@ interface AppContextValue {
   setClientAddr: Dispatch<SetStateAction<string | null>>;
   connectWallet: () => void;
   todos: ITodo[];
+  isLoading: boolean;
   addTodo: (description: string) => void;
   contractAddr: string | undefined;
   instantiateTodoContract: () => void;
@@ -29,6 +30,7 @@ export const AppContext = React.createContext<AppContextValue | null>(null);
 
 const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
   const [clientAddr, setClientAddr] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [client, setClient] = useState<any>(null);
   const [contractAddr, setContractAddr] =
     useLocalStorage<string>("contractAddr");
@@ -67,15 +69,33 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
 
   const queryTodos = async () => {
     if (!contractAddr) return;
+    setIsLoading(true);
     const { todos } = await client.queryContractSmart(contractAddr, {
-      get_todo_list: { addr: clientAddr },
+      get_todo_list: { addr: clientAddr, limit: 30 },
     });
     setTodos(todos);
+    setIsLoading(false);
   };
 
   const execute = async (msg: any) => {
     if (!contractAddr) return;
+    // RPC Client doesn't support subscribe to events
+    // const tmClient = await Tendermint34Client.connect(malagaConfig.rpc);
+    // const stream = tmClient.subscribeTx(
+    //   `tm.event = 'Tx' AND message.action = '/cosmwasm.wasm.v1.MsgExecuteContract' AND execute._contract_address CONTAINS '${contractAddr}'`
+    // );
+    // const sub = stream.subscribe({
+    //   next: (event: any) => {
+    //     console.log(Buffer.from(event.tx, "base64").toString("utf8"));
+    //     console.log(event.result);
+    //     console.log(event);
+    //     sub.unsubscribe();
+    //   },
+    // });
+    setIsLoading(true);
     await client.execute(clientAddr, contractAddr, msg, "auto");
+    await queryTodos();
+    setIsLoading(false);
   };
 
   const addTodo = async (description: string) => {
@@ -111,6 +131,7 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
         setClientAddr,
         connectWallet,
         todos,
+        isLoading,
         addTodo,
         contractAddr,
         instantiateTodoContract,
