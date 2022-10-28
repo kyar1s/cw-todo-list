@@ -1,8 +1,3 @@
-import {
-  CosmWasmClient,
-  SigningCosmWasmClient,
-} from "@cosmjs/cosmwasm-stargate";
-import { GasPrice } from "@cosmjs/stargate";
 import React, {
   Dispatch,
   PropsWithChildren,
@@ -27,6 +22,7 @@ interface AppContextValue {
   queryTodos: () => void;
   deleteTodo: (id: number) => void;
   updateTodoDescription: (id: number, description: string) => void;
+  updateTodoStatus: (id: number, status: TodoStatus) => void;
 }
 
 export const AppContext = React.createContext<AppContextValue | null>(null);
@@ -94,6 +90,10 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
     await execute({ update_todo: { id, description } });
   };
 
+  const updateTodoStatus = async (id: number, status: TodoStatus) => {
+    await execute({ update_todo: { id, status } });
+  };
+
   useEffect(() => {
     if (!allowPermission) return;
     connectWallet();
@@ -117,6 +117,7 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
         queryTodos,
         deleteTodo,
         updateTodoDescription,
+        updateTodoStatus,
       }}
     >
       {children}
