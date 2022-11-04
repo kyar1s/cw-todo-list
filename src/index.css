@@ -6,4 +6,5 @@
     min-height: 100vh;
     overflow: auto;
     overflow-x: hidden;
+    background: theme('colors.slate.900');
 }
