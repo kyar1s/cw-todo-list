@@ -1,3 +1,4 @@
+import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import React, {
   Dispatch,
   PropsWithChildren,
@@ -10,7 +11,11 @@ import { useLocalStorage } from "react-use";
 import { ITodo } from "../interfaces/ITodo";
 import { TodoStatus } from "../interfaces/TodoStatus";
 import { createSignClient } from "../services/cosmwasm";
-import { malagaConfig } from "../utils/malagaConfig";
+import { junoConfig, malagaConfig } from "../utils/chainsConfig";
+import { configKeplr } from "../utils/configKeplr";
+
+const WASM_TODO_CODE_ID = 1804;
+const JUNO_TODO_CODE_ID = 1760;
 
 interface AppContextValue {
   clientAddr: string | null;
@@ -24,24 +29,30 @@ interface AppContextValue {
   deleteTodo: (id: number) => void;
   updateTodoDescription: (id: number, description: string) => void;
   updateTodoStatus: (id: number, status: TodoStatus) => void;
+  chain?: string;
+  changeChain: (chain: string) => void;
 }
 
 export const AppContext = React.createContext<AppContextValue | null>(null);
 
 const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
   const [clientAddr, setClientAddr] = useState<string | null>(null);
-  const [client, setClient] = useState<any>(null);
-  const [contractAddr, setContractAddr] =
-    useLocalStorage<string>("contractAddr");
+  const [client, setClient] = useState<SigningCosmWasmClient | null>(null);
   const [allowPermission, setAllowPermission] =
     useLocalStorage<boolean>("allowPermission");
   const [todos, setTodos] = useState<ITodo[]>([]);
+  const [chain, setChain] = useLocalStorage("chain", "malaga-420");
+  const [contractAddr, setContractAddr] = useLocalStorage<string>(
+    `${chain}_contractAddr`
+  );
 
   const instantiateTodoContract = async () => {
-    if (!clientAddr) return;
+    if (!clientAddr || !client) return;
+    const codeID =
+      chain === "malaga-420" ? WASM_TODO_CODE_ID : JUNO_TODO_CODE_ID;
     const inst = await client.instantiate(
       clientAddr,
-      1804,
+      codeID,
       { owner: clientAddr },
       "Todo-List",
       "auto"
@@ -51,23 +62,29 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
   };
 
   const connectWallet = async () => {
+    if (!chain) return;
+    const config = chain === "malaga-420" ? malagaConfig : junoConfig;
     try {
-      await window.keplr?.enable("malaga-420");
+      await window.keplr?.enable(chain);
     } catch (err) {
-      await window.keplr?.experimentalSuggestChain(malagaConfig);
-      await window.keplr?.enable("malaga-420");
+      await window.keplr?.experimentalSuggestChain(configKeplr(config));
+      await window.keplr?.enable(chain);
     }
-    const signer = window.keplr?.getOfflineSigner("malaga-420");
+    const signer = window.keplr?.getOfflineSigner(chain);
     if (!signer) return;
-    const client = await createSignClient(signer);
+    const client = await createSignClient(signer, config);
     const [{ address }] = await signer.getAccounts();
     setClient(client);
     setClientAddr(address);
     setAllowPermission(true);
   };
 
+  useEffect(() => {
+    connectWallet();
+  }, [chain]);
+
   const queryTodos = async () => {
-    if (!contractAddr) return;
+    if (!contractAddr || !client) return;
     const { todos } = await client.queryContractSmart(contractAddr, {
       get_todo_list: { addr: clientAddr, limit: 30 },
     });
@@ -75,7 +92,7 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
   };
 
   const execute = async (msg: any) => {
-    if (!contractAddr) return;
+    if (!clientAddr || !contractAddr || !client) return;
     // RPC Client doesn't support subscribe to events
     // const tmClient = await Tendermint34Client.connect(malagaConfig.rpc);
     // const stream = tmClient.subscribeTx(
@@ -121,6 +138,11 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
     await execute({ update_todo: { id, status } });
   };
 
+  const changeChain = (chain: string) => {
+    if (!chain) return;
+    setChain(chain);
+  };
+
   useEffect(() => {
     if (!allowPermission) return;
     connectWallet();
@@ -145,6 +167,8 @@ const AppProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
         deleteTodo,
         updateTodoDescription,
         updateTodoStatus,
+        chain,
+        changeChain,
       }}
     >
       {children}
