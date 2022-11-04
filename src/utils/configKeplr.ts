@@ -18,11 +18,6 @@ export const configKeplr = (config: any) => {
         coinMinimalDenom: config.feeToken,
         coinDecimals: config.coinMap[config.feeToken].fractionalDigits,
       },
-      {
-        coinDenom: config.coinMap[config.stakingToken].denom,
-        coinMinimalDenom: config.stakingToken,
-        coinDecimals: config.coinMap[config.stakingToken].fractionalDigits,
-      },
     ],
     feeCurrencies: [
       {
