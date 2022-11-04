@@ -1,10 +1,11 @@
 import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
+import { OfflineSigner } from "@cosmjs/proto-signing";
 import { GasPrice } from "@cosmjs/stargate";
 
-export const createSignClient = async (signer: any) => {
-  return await SigningCosmWasmClient.connectWithSigner(
-    "https://rpc.malaga-420.cosmwasm.com:443",
-    signer,
-    { prefix: "wasm", gasPrice: GasPrice.fromString("0.025" + "umlg") }
-  );
+export const createSignClient = async (signer: OfflineSigner, config: any) => {
+  const { rpcUrl, feeToken, gasPrice } = config;
+  return await SigningCosmWasmClient.connectWithSigner(rpcUrl, signer, {
+    prefix: feeToken,
+    gasPrice: GasPrice.fromString(gasPrice + feeToken),
+  });
 };
